@@ -1,0 +1,66 @@
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.model_selection import train_test_split,GridSearchCV,cross_val_score 
+import seaborn as sns 
+from sklearn.metrics import accuracy_score,mean_squared_error,classification_report,confusion_matrix,precision_score,recall_score,roc_curve,auc 
+from sklearn.feature_selection import SelectKBest 
+from sklearn.feature_selection import chi2 
+from sklearn.ensemble import ExtraTreesClassifier,RandomForestClassifier 
+from sklearn.tree import DecisionTreeClassifier 
+from sklearn.svm import SVC 
+from sklearn.naive_bayes import GaussianNB 
+from sklearn.preprocessing import StandardScaler,MinMaxScaler 
+from sklearn.neighbors import KNeighborsClassifier
+
+data=pd.read_csv('health care diabetes.csv') 
+data.head()
+
+# Replacing the null values with the mean data
+data['Glucose'] = data['Glucose'].replace([0], [data['Glucose'].mean()])
+data['BloodPressure'] = data['BloodPressure'].replace([0], [data['BloodPressure'].mean()])
+data['SkinThickness'] = data['SkinThickness'].replace([0], [data['SkinThickness'].mean()])
+data['Insulin'] = data['Insulin'].replace([0], [data['Insulin'].mean()])
+
+selected_columns = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin']
+null_percentage = (data[selected_columns].isnull().mean() * 100)
+
+# Displaying the null value percentage for each selected column
+print("Percentage of Null Values for Each Column:")
+print(null_percentage)
+
+columns=data[selected_columns]
+
+plt.figure(figsize=(14, 10))
+sns.boxplot(data=data[selected_columns])  
+plt.title("Boxplots for Numeric Columns")
+plt.show()
+
+
+def find_outliers_iqr(data, column_name):
+    # Calculate the first quartile (Q1) and third quartile (Q3)
+    Q1 = data[column_name].quantile(0.25)
+    Q3 = data[column_name].quantile(0.75)
+
+    # Calculate the interquartile range (IQR)
+    IQR = Q3 - Q1
+
+    # Define the lower and upper bounds for outliers
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    # Find outliers
+    outliers = data[(data[column_name] < lower_bound) | (data[column_name] > upper_bound)]
+
+    # Count the number of outliers
+    count_outliers = len(outliers)
+    return count_outliers
+
+# Assuming 'selected_columns' is a list of column names
+selected_columns = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin']
+
+# Calculate and print the number of outliers for each column of interest
+for column_name in selected_columns:
+    outlier_count = find_outliers_iqr(data, column_name)
+    print(f"Number of outliers in the '{column_name}' column: {outlier_count}")
